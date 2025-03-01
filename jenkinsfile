@@ -9,7 +9,7 @@ pipeline {
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [ [ 
                     credentialsId: 'Kongpop', 
-                    url: 'https://github.com/KongpopUs/CSI402-Frontend-NextJS.git'
+                    url: 'https://github.com/Chaowpan/csi403-jenkins-docker.git'
             ] ]
             ])
             print "Clone Success"
