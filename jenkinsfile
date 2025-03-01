@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE_NAME = 'my-react-app'
+        CONTAINER_NAME = 'my-react-app-run'
+        DOCKER_PORT = '3000'
+        HOST_PORT = '3000'
+    }
+
+    stages {
+        stage('Check Out') {
+            steps {
+                echo "🔍 Checking Out Code"
+                checkout([
+                    $class: 'GitSCM', 
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        credentialsId: 'Your-Credentials-ID', 
+                        url: 'https://github.com/YourUsername/YourRepo.git'
+                    ]]
+                ])
+                echo "✅ Clone Success"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "🚀 Building Docker Image"
+                script {
+                    sh "docker build -t ${DOCKER_IMAGE_NAME} ."
+                    echo "✅ Docker Image Build Success"
+                }
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                echo "📦 Running Docker Container"
+                script {
+                    // หยุดและลบ container เดิมถ้ามี
+                    sh "docker rm -f ${CONTAINER_NAME} || true"
+                    // รัน container ใหม่
+                    sh "docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${DOCKER_PORT} ${DOCKER_IMAGE_NAME}:latest"
+                    echo "✅ Docker Container Running Successfully"
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "🧪 Running Tests"
+                script {
+                    // ตัวอย่างสำหรับการทดสอบ (สามารถเพิ่มการทดสอบจริงได้)
+                    sh "curl -f http://localhost:${HOST_PORT} || exit 1"
+                    echo "✅ Tests Passed Successfully"
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "❌ Pipeline Failed. Please check the logs."
+        }
+        success {
+            echo "🎉 Pipeline Completed Successfully."
+        }
+    }
+}
