@@ -1,70 +1,40 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE_NAME = 'my-react-app'
-        CONTAINER_NAME = 'my-react-app-run'
-        DOCKER_PORT = '3000'
-        HOST_PORT = '3000'
-    }
-
-    stages {
+    stages{
         stage('Check Out') {
             steps {
-                echo "🔍 Checking Out Code"
+                print "Check Out"
                 checkout([
                     $class: 'GitSCM', 
                     branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        credentialsId: 'Your-Credentials-ID', 
-                        url: 'https://github.com/YourUsername/YourRepo.git'
-                    ]]
-                ])
-                echo "✅ Clone Success"
+                    userRemoteConfigs: [ [ 
+                    credentialsId: 'Kongpop', 
+                    url: 'https://github.com/KongpopUs/CSI402-Frontend-NextJS.git'
+            ] ]
+            ])
+            print "Clone Success"
             }
         }
-
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
-                echo "🚀 Building Docker Image"
+                print "Docker Build Image"
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE_NAME} ."
-                    echo "✅ Docker Image Build Success"
+                    bat "docker build -t csi403-frontend ."
+                    print "Docker Build Image Success"
+                }
+
+                print "Docker Image to Running Container"
+                script {
+                    bat "docker rm -f csi403-frontend-run || true"
+                    bat "docker run -d --name csi403-frontend-run -p 54100:3000 csi403-frontend:latest"
+                    print "Docker Image to Running Container Success"
                 }
             }
         }
-
-        stage('Deploy Container') {
-            steps {
-                echo "📦 Running Docker Container"
-                script {
-                    // หยุดและลบ container เดิมถ้ามี
-                    sh "docker rm -f ${CONTAINER_NAME} || true"
-                    // รัน container ใหม่
-                    sh "docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${DOCKER_PORT} ${DOCKER_IMAGE_NAME}:latest"
-                    echo "✅ Docker Container Running Successfully"
-                }
-            }
-        }
-
         stage('Test') {
             steps {
-                echo "🧪 Running Tests"
-                script {
-                    // ตัวอย่างสำหรับการทดสอบ (สามารถเพิ่มการทดสอบจริงได้)
-                    sh "curl -f http://localhost:${HOST_PORT} || exit 1"
-                    echo "✅ Tests Passed Successfully"
-                }
+                print "Testing"
             }
-        }
-    }
-
-    post {
-        failure {
-            echo "❌ Pipeline Failed. Please check the logs."
-        }
-        success {
-            echo "🎉 Pipeline Completed Successfully."
         }
     }
 }
