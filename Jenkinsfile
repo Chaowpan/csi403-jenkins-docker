@@ -20,20 +20,38 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "Docker Build Image"
-                script {
-                    bat "docker build -t csi403-frontend ."
-                    echo "Docker Build Image Success"
-                }
-
-                echo "Docker Image to Running Container"
-                script {
-                    bat "docker rm -f csi403-frontend-run || true"
-                    bat "docker run -d --name csi403-frontend-run -p 54100:3000 csi403-frontend:latest"
-                    echo "Docker Image to Running Container Success"
-                }
+            echo "Docker Build Image"
+            script {
+                // ตรวจสอบว่า Docker พร้อมใช้งาน
+                sh 'docker --version'  // สำหรับ Linux หรือ macOS
+                // bat 'docker --version' // หากใช้ Windows
+    
+                // ตรวจสอบสถานะ Docker Daemon
+                sh 'docker ps -a'  // สำหรับ Linux หรือ macOS
+                // bat 'docker ps -a'  // หากใช้ Windows
+    
+                // สร้าง Docker Image
+                sh 'docker build -t csi403-frontend .'  // ใช้ sh สำหรับ Linux หรือ macOS
+                // bat 'docker build -t csi403-frontend .'  // หากใช้ Windows
+    
+                echo "Docker Build Image Success"
             }
+    
+            echo "Docker Image to Running Container"
+            script {
+                // ลบ container เก่าหากมี
+                sh 'docker rm -f csi403-frontend-run || true'  // สำหรับ Linux หรือ macOS
+                // bat 'docker rm -f csi403-frontend-run || true'  // หากใช้ Windows
+    
+                // รัน Docker container
+                sh 'docker run -d --name csi403-frontend-run -p 54100:3000 csi403-frontend:latest'  // สำหรับ Linux หรือ macOS
+                // bat 'docker run -d --name csi403-frontend-run -p 54100:3000 csi403-frontend:latest'  // หากใช้ Windows
+    
+                echo "Docker Image to Running Container Success"
         }
+    }
+}
+
 
         stage('Test') {
             steps {
